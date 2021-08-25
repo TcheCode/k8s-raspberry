@@ -54,10 +54,12 @@ ssh-copy-id -i ~/.ssh/rasps-k8s.pub ubuntu@10.100.1.11
 
 Test your SSH access in all nodes, no password will be required.
 
+Next, i recommend you set hostname different to each Pi.
+
 ### Ansible Roles
 
 I prepared five roles: 
-  - configure_node: Set hostname, kernel modules, firewall rules and another linux changes.
+  - configure_node: Enable kernel modules, firewall rules and another linux changes.
   - install_containerd: No Docker is required, just containerd. This role install it.
   - install_k8s: Install k8s with kubeadm and Helm  
   - init_cluster: Initialize cluster and install pod network

@@ -1,6 +1,12 @@
 [k8s_master]
 10.100.1.11
 
+[k8s_master:vars]
+
+
 [k8s_workers]
 10.100.1.12
 10.100.1.13
+
+[k8s_workers:vars]
+K8S_MASTER_ADDRESS=10.100.1.11
