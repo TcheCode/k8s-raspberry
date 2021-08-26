@@ -1,2 +1,19 @@
 ---
 # tasks file for install_k8s
+- name: adding the repository key 
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+- name: adding the repository
+  apt_repository: 
+    repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+
+- name: installing packages kubeadm, kubelet e kubectl
+  apt: 
+    name: "{{ packages }}"    
+    update_cache: yes    
+  vars:
+    packages:
+    - kubelet
+    - kubeadm
+    - kubectl
