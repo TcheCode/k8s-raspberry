@@ -4,15 +4,15 @@
   roles:
   - { role: configure_node, tags: ["node"] }
 
-- hosts: k8s_master
-  become: yes
-  user: ubuntu  
-  roles: 
-  - { role: install_containerd, tags: ["containerd"] }    
-  
 - hosts: all
   become: yes
-  user: ubuntu    
+  user: ubuntu      
+  roles:
+  - { role: install_containerd, tags: ["containerd"] }    
+
+- hosts: all
+  become: yes
+  user: ubuntu      
   roles:
   - { role: install_k8s, tags: ["k8s"] } 
 

@@ -35,4 +35,5 @@
     - "cgroup_enable=cpuset"
     - "cgroup_memory=1"
     - "cgroup_enable=memory"
-  notify: restart
+  when: ansible_facts['architecture'] == "aarch64"
+  notify: restart  
