@@ -11,10 +11,21 @@
   apt_key: 
     url: https://download.docker.com/linux/ubuntu/gpg    
 
-- name: adding the containerd's repository key 
+- name: 
+  debug: 
+    msg: "{{ ansible_facts['architecture'] }}"
+
+- name: adding the containerd's repository in arm64
+  apt_repository: 
+    repo: deb [arch=arm64] https://download.docker.com/linux/ubuntu hirsute stable
+    filename: containerd.list   
+  when: ansible_facts['architecture'] == "aarch64" 
+
+- name: adding the containerd's repository in amd64
   apt_repository: 
     repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu hirsute stable
-    filename: containerd.list    
+    filename: containerd.list   
+  when: ansible_facts['architecture'] == "x86_64" 
 
 - name: installing containerd
   apt: 
