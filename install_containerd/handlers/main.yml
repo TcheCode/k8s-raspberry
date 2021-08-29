@@ -1,2 +1,7 @@
 ---
 # handlers file for install_containerd
+- name: restarting containerd
+  service:
+    name: containerd
+    state: restarted
+  listen: "restart_containerd"

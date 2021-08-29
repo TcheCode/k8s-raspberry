@@ -11,10 +11,6 @@
   apt_key: 
     url: https://download.docker.com/linux/ubuntu/gpg    
 
-- name: 
-  debug: 
-    msg: "{{ ansible_facts['architecture'] }}"
-
 - name: adding the containerd's repository in arm64
   apt_repository: 
     repo: deb [arch=arm64] https://download.docker.com/linux/ubuntu hirsute stable
@@ -35,17 +31,20 @@
   file:
     path: /etc/containerd
     state: directory
+  when: 
+
+- name: checking if config file already exists
+  stat:
+    path: /etc/containerd/config.toml
+  register: containerd_config
 
 - name: creating a default config for containerd
   shell: "containerd config default | sudo tee /etc/containerd/config.toml"  
+  when: containerd_config.stat.exists != true
 
 - name: configuring Systemd as containerd's cgroup driver
   replace:
     path: /etc/containerd/config.toml
     regexp: "SystemdCgroup = false"
     replace: "SystemdCgroup = true"
-  
-- name: restarting containerd
-  service:
-    name: containerd
-    state: restarted
+  notify: restart_containerd
