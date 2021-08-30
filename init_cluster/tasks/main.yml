@@ -1,53 +1,49 @@
 ---
 # tasks file for init_cluster
+- name: checking if cluster already exists
+  shell:
+    kubectl version
+  ignore_errors: true
+  changed_when: false
+  register: cluster_info 
+
 - name: pulling k8s images   
   command: 
     kubeadm config images pull  
+  when: cluster_info.stderr.find('was refused') > 0
 
-# - name: Verifica situação do cluster
-#   shell:
-#     kubectl cluster-info
-#   register: cluster_info
+- name: initialize cluster
+  command:
+    kubeadm init
+  register: kubeadm_init
+  when: cluster_info.stderr.find('was refused') > 0
 
-# - name: Iniciando cluster k8s
-#   command:
-#     kubeadm init 
-#   register: kubeadm_init
-#   when: cluster_info.stdout.find('control plane is running at') != -1
+- name: creating the config directory .kube
+  file:
+    path: ~/.kube
+    state: directory
 
-# - name: Criando o diretorio .kube
-#   file:
-#     path: ~/.kube
-#     state: directory
+- name: linking default config file
+  file:
+    src: /etc/kubernetes/admin.conf
+    dest: ~/.kube/config
+    state: link
 
-# - name: Linkando o arquivo de configuração de acesso
-#   file:
-#     src: /etc/kubernetes/admin.conf
-#     dest: ~/.kube/config
-#     state: link
+- name: installing pod network
+  shell: kubectl apply -f {{ podnetwork_url }}
+  changed_when: false
 
-# - name: Instalando o Weave Network
-#   shell: kubectl apply -f {{ default_url_weavenet  }}
-#   register: weavenet_result
+- name: saving join tokens 
+  shell: kubeadm token list | cut -d ' ' -f1 | sed -n '2p'
+  register: k8s_token
+  changed_when: false
 
-# - name: Pegando o token de join worker
-#   shell: kubeadm token list | cut -d ' ' -f1 | sed -n '2p'
-#   register: k8s_token
+- name: CA Hash
+  shell: openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
+  register: k8s_master_ca_hash
 
-# - name: CA Hash
-#   shell: openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
-#   register: k8s_master_ca_hash
-
-# - name: Adicionando o token e hash no dummy host
-#   add_host:
-#     name: "K8S_TOKEN_HOLDER"
-#     token: "{{ k8s_token.stdout }}"
-#     hash: "{{ k8s_master_ca_hash.stdout }}"
-    
-# - name: 
-#   debug: 
-#     msg: "[MASTER] K8S_TOKEN_HOLDER - O token é {{ hostvars['K8S_TOKEN_HOLDER']['token'] }}"
-
-# - name: 
-#   debug: 
-#     msg: "[MASTER] K8S_TOKEN_HOLDER - O hash é {{ hostvars['K8S_TOKEN_HOLDER']['hash'] }}"
+- name: adding the join token and ca hash in the dummy host
+  add_host:
+    name: "K8S_TOKEN_HOLDER"
+    token: "{{ k8s_token.stdout }}"
+    hash: "{{ k8s_master_ca_hash.stdout }}"

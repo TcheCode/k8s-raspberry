@@ -24,7 +24,7 @@
   
 - hosts: k8s_workers
   become: yes
-  user: ubuntu  
+  user: ubuntu    
   roles:
   - { role: join_workers, tags: ["k8s", "workers"] }
 
